@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="sr-Latn" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Vremenska prognoza za bilo koji grad na svetu.">
+    <title>Vreme – vremenska prognoza</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/site.css" rel="stylesheet">
+</head>
+<body class="theme-clear-day">
+<div class="sky" aria-hidden="true"></div>
+
+<nav class="navbar py-3">
+    <div class="container gap-3 flex-wrap">
+        <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold" href="/">
+            <i class="bi bi-cloud-sun-fill brand-icon" aria-hidden="true"></i>
+            Vreme
+        </a>
+
+        <form id="search-form" class="search flex-grow-1" role="search" autocomplete="off">
+            <label for="search-input" class="visually-hidden">Pretraži grad</label>
+            <div class="input-group glass-input">
+                <span class="input-group-text"><i class="bi bi-search" aria-hidden="true"></i></span>
+                <input id="search-input" class="form-control" type="search" placeholder="Pretraži grad…"
+                       role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-results">
+                <button id="locate-btn" class="btn" type="button" title="Moja lokacija" aria-label="Koristi moju lokaciju">
+                    <i class="bi bi-crosshair" aria-hidden="true"></i>
+                </button>
+            </div>
+            <ul id="search-results" class="search-results glass list-unstyled" role="listbox" hidden></ul>
+        </form>
+    </div>
+</nav>
+
+<main class="container pb-5">
+    <div id="status" class="alert glass" role="status" aria-live="polite" hidden></div>
+
+    <div class="row g-4">
+        <div class="col-lg-8 d-flex flex-column gap-4">
+
+            <!-- Trenutno vreme -->
+            <section class="card glass hero" aria-labelledby="city-name">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div>
+                            <h1 id="city-name" class="h3 mb-1 placeholder-glow"><span class="placeholder col-8"></span></h1>
+                            <p id="city-meta" class="text-secondary-emphasis mb-0"></p>
+                        </div>
+                        <button id="fav-btn" class="btn btn-icon" type="button" aria-pressed="false" hidden>
+                            <i class="bi bi-star" aria-hidden="true"></i>
+                            <span class="visually-hidden">Dodaj u omiljene</span>
+                        </button>
+                    </div>
+
+                    <div class="d-flex align-items-center flex-wrap gap-3 gap-md-4 mt-4">
+                        <i id="current-icon" class="bi current-icon" aria-hidden="true"></i>
+                        <div>
+                            <div class="temp-big"><span id="current-temp">--</span><span class="unit">°C</span></div>
+                            <div id="current-desc" class="fs-5 fw-medium"></div>
+                            <div id="current-range" class="text-secondary-emphasis"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Po satima -->
+            <section class="card glass" aria-labelledby="hourly-title">
+                <div class="card-body">
+                    <h2 id="hourly-title" class="section-title"><i class="bi bi-clock" aria-hidden="true"></i> Sledeća 24 sata</h2>
+                    <div id="hourly" class="hourly" tabindex="0" aria-label="Prognoza po satima"></div>
+                </div>
+            </section>
+
+            <!-- Detalji -->
+            <section aria-labelledby="details-title">
+                <h2 id="details-title" class="visually-hidden">Detalji</h2>
+                <div id="details" class="row row-cols-2 row-cols-md-3 g-3"></div>
+            </section>
+        </div>
+
+        <div class="col-lg-4 d-flex flex-column gap-4">
+            <!-- 7 dana -->
+            <section class="card glass" aria-labelledby="daily-title">
+                <div class="card-body">
+                    <h2 id="daily-title" class="section-title"><i class="bi bi-calendar3" aria-hidden="true"></i> Prognoza za 7 dana</h2>
+                    <ul id="daily" class="list-unstyled daily mb-0"></ul>
+                </div>
+            </section>
+
+            <!-- Omiljeni -->
+            <section class="card glass" aria-labelledby="fav-title">
+                <div class="card-body">
+                    <h2 id="fav-title" class="section-title"><i class="bi bi-star" aria-hidden="true"></i> Omiljeni gradovi</h2>
+                    <ul id="favorites" class="list-unstyled favorites mb-0"></ul>
+                    <p id="favorites-empty" class="text-secondary-emphasis small mb-0">
+                        Kliknite na zvezdicu pored imena grada da ga sačuvate.
+                    </p>
+                </div>
+            </section>
+        </div>
+    </div>
+</main>
+
+<footer class="container pb-4 small text-secondary-emphasis">
+    Podaci: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

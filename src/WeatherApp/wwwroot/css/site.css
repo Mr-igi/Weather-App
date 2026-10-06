@@ -1,0 +1,250 @@
+/* ===== Teme: pozadina se menja u zavisnosti od vremena ===== */
+:root {
+    --sky-from: #0284c7;
+    --sky-to: #38bdf8;
+    --accent: #f59e0b;
+    --glass-bg: rgba(255, 255, 255, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.22);
+    --glass-hover: rgba(255, 255, 255, 0.2);
+    --bs-body-font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --bs-body-color: #f8fafc;
+    --bs-secondary-color: rgba(248, 250, 252, 0.75);
+    --bs-secondary-color-rgb: 248, 250, 252;
+}
+
+.theme-clear-day   { --sky-from: #0369a1; --sky-to: #38bdf8; --accent: #f59e0b; }
+.theme-clear-night { --sky-from: #0b1026; --sky-to: #1e3a8a; --accent: #fcd34d; }
+.theme-cloudy      { --sky-from: #334155; --sky-to: #64748b; --accent: #e2e8f0; }
+.theme-rain        { --sky-from: #1e293b; --sky-to: #3b5b7a; --accent: #7dd3fc; }
+.theme-storm       { --sky-from: #0f172a; --sky-to: #3f3f6b; --accent: #facc15; }
+.theme-snow        { --sky-from: #475569; --sky-to: #94a3b8; --accent: #e0f2fe; }
+.theme-fog         { --sky-from: #4b5563; --sky-to: #9ca3af; --accent: #f1f5f9; }
+
+body {
+    min-height: 100vh;
+    background: #0b1026;
+    -webkit-font-smoothing: antialiased;
+}
+
+.sky {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background:
+        radial-gradient(circle at 15% 10%, rgba(255, 255, 255, 0.18), transparent 40%),
+        linear-gradient(160deg, var(--sky-from), var(--sky-to));
+    transition: background 0.8s ease;
+}
+
+a { color: var(--accent); }
+
+/* ===== Staklene (glass) kartice ===== */
+.glass {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 1.25rem;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+    color: var(--bs-body-color);
+}
+
+.card.glass { --bs-card-bg: transparent; --bs-card-border-color: transparent; }
+
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+    margin-bottom: 1rem;
+}
+
+.brand-icon { color: var(--accent); font-size: 1.6rem; }
+.navbar-brand { color: #fff; font-size: 1.25rem; }
+
+/* ===== Pretraga ===== */
+.search { position: relative; max-width: 32rem; }
+
+.glass-input {
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 999px;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    overflow: hidden;
+}
+
+.glass-input .input-group-text,
+.glass-input .form-control,
+.glass-input .btn {
+    background: transparent;
+    border: 0;
+    color: #fff;
+}
+
+.glass-input .form-control::placeholder { color: rgba(255, 255, 255, 0.65); }
+.glass-input .form-control:focus { box-shadow: none; }
+.glass-input:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.glass-input .btn { min-width: 44px; min-height: 44px; }
+.glass-input .btn:hover { background: var(--glass-hover); }
+
+.search-results {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    z-index: 1050;
+    padding: 0.4rem;
+    margin: 0;
+    background: rgba(15, 23, 42, 0.85);
+}
+
+.search-results li {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+}
+
+.search-results li[aria-selected="true"],
+.search-results li:hover { background: var(--glass-hover); }
+.search-results .result-meta { font-size: 0.85rem; color: var(--bs-secondary-color); }
+
+/* ===== Trenutno vreme ===== */
+.current-icon { font-size: clamp(4rem, 12vw, 6.5rem); line-height: 1; color: var(--accent); }
+.temp-big { font-size: clamp(3.5rem, 11vw, 5.5rem); font-weight: 300; line-height: 1; letter-spacing: -0.03em; }
+.temp-big .unit { font-size: 0.4em; vertical-align: top; margin-left: 0.15em; opacity: 0.8; }
+
+.btn-icon {
+    min-width: 44px;
+    min-height: 44px;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 1.4rem;
+    border: 1px solid var(--glass-border);
+}
+
+.btn-icon:hover { background: var(--glass-hover); color: #fff; }
+.btn-icon[aria-pressed="true"] { color: var(--accent); }
+
+/* ===== Po satima (horizontalni skrol) ===== */
+.hourly {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.5rem;
+    scrollbar-width: thin;
+}
+
+.hour {
+    flex: 0 0 4.5rem;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.75rem 0.25rem;
+    border-radius: 1rem;
+    text-align: center;
+}
+
+.hour.now { background: var(--glass-hover); }
+.hour .bi { font-size: 1.6rem; color: var(--accent); }
+.hour .time { font-size: 0.85rem; color: var(--bs-secondary-color); }
+.hour .t { font-weight: 600; }
+.hour .rain { font-size: 0.75rem; color: #7dd3fc; min-height: 1.1em; }
+
+/* ===== Detalji ===== */
+.detail {
+    height: 100%;
+    padding: 1rem 1.1rem;
+}
+
+.detail .label {
+    font-size: 0.8rem;
+    color: var(--bs-secondary-color);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.detail .value { font-size: 1.5rem; font-weight: 600; margin-top: 0.25rem; }
+.detail .hint { font-size: 0.8rem; color: var(--bs-secondary-color); }
+.wind-arrow { display: inline-block; transition: transform 0.4s ease; }
+
+/* ===== 7 dana ===== */
+.daily li {
+    display: grid;
+    grid-template-columns: 4.5rem 2rem 2.5rem 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.daily li:last-child { border-bottom: 0; }
+.daily .day { font-weight: 500; }
+.daily .bi { font-size: 1.3rem; color: var(--accent); }
+.daily .rain { font-size: 0.75rem; color: #7dd3fc; }
+.daily .range { display: flex; align-items: center; gap: 0.5rem; justify-content: flex-end; font-variant-numeric: tabular-nums; }
+.daily .min { color: var(--bs-secondary-color); }
+
+.range-bar {
+    position: relative;
+    flex: 1;
+    max-width: 6rem;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.range-bar span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #7dd3fc, var(--accent));
+}
+
+/* ===== Omiljeni ===== */
+.favorites li { display: flex; align-items: center; gap: 0.25rem; }
+
+.favorites .fav-open {
+    flex: 1;
+    text-align: left;
+    color: #fff;
+    padding: 0.6rem 0.75rem;
+    border-radius: 0.75rem;
+    min-height: 44px;
+}
+
+.favorites .fav-open:hover,
+.favorites .fav-open.active { background: var(--glass-hover); color: #fff; }
+
+.favorites .fav-remove {
+    color: var(--bs-secondary-color);
+    min-width: 44px;
+    min-height: 44px;
+}
+
+.favorites .fav-remove:hover { color: #fca5a5; }
+
+/* ===== Ostalo ===== */
+.btn:focus-visible,
+.hourly:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+#status { color: #fff; }
+
+.loading .hero,
+.loading #hourly,
+.loading #details,
+.loading #daily { opacity: 0.55; transition: opacity 0.2s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
+}
+
+#status:not([hidden]) { display: flex; align-items: center; gap: 0.5rem; }
