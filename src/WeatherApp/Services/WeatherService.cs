@@ -5,7 +5,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace WeatherApp.Services;
 
 /// <summary>
-/// Poziva besplatni Open-Meteo API (ne treba API ključ) i kešira odgovore u memoriji.
+/// Calls the free Open-Meteo API (no API key required) and caches responses in memory.
 /// </summary>
 public class WeatherService(HttpClient http, IMemoryCache cache)
 {
@@ -14,11 +14,11 @@ public class WeatherService(HttpClient http, IMemoryCache cache)
 
     private const string ForecastFields =
         "current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code," +
-        "pressure_msl,wind_speed_10m,wind_direction_10m" +
+        "pressure_msl,wind_speed_10m,wind_direction_10m,wind_gusts_10m,visibility,dew_point_2m" +
         "&hourly=temperature_2m,weather_code,precipitation_probability,is_day" +
         "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max," +
-        "precipitation_probability_max" +
-        "&timezone=auto&forecast_days=7";
+        "precipitation_probability_max,precipitation_sum" +
+        "&timezone=auto&forecast_days=10";
 
     public async Task<IReadOnlyList<CityResult>> SearchCitiesAsync(string query, CancellationToken ct)
     {
@@ -26,9 +26,8 @@ public class WeatherService(HttpClient http, IMemoryCache cache)
         if (cache.TryGetValue(key, out IReadOnlyList<CityResult>? cached) && cached is not null)
             return cached;
 
-        // language=hr vraća nazive latinicom (npr. "Beograd, Srbija").
         var url = "https://geocoding-api.open-meteo.com/v1/search" +
-                  $"?name={Uri.EscapeDataString(query)}&count=6&language=hr&format=json";
+                  $"?name={Uri.EscapeDataString(query)}&count=6&language=en&format=json";
         var response = await http.GetFromJsonAsync<GeocodingResponse>(url, ct);
 
         IReadOnlyList<CityResult> results = response?.Results?

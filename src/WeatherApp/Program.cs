@@ -12,7 +12,7 @@ builder.Services.AddHttpClient<WeatherService>(client => client.Timeout = TimeSp
 
 var app = builder.Build();
 
-// Kreira SQLite bazu (weather.db) pri prvom pokretanju.
+// Creates the SQLite database (weather.db) on first run.
 using (var scope = app.Services.CreateScope())
 {
     scope.ServiceProvider.GetRequiredService<AppDbContext>().Database.EnsureCreated();
@@ -23,13 +23,13 @@ app.UseStaticFiles();
 
 var api = app.MapGroup("/api");
 
-// ---------- Vremenska prognoza (proxy ka Open-Meteo, sa keširanjem) ----------
+// ---------- Weather (proxy to Open-Meteo, with caching) ----------
 
 api.MapGet("/geocode", async (string? q, WeatherService weather, CancellationToken ct) =>
 {
     var query = q?.Trim() ?? "";
     if (query.Length is < 2 or > 100)
-        return Results.BadRequest(new { error = "Unesite između 2 i 100 karaktera." });
+        return Results.BadRequest(new { error = "Enter between 2 and 100 characters." });
 
     return await Upstream(async () => Results.Ok(await weather.SearchCitiesAsync(query, ct)));
 });
@@ -37,13 +37,13 @@ api.MapGet("/geocode", async (string? q, WeatherService weather, CancellationTok
 api.MapGet("/weather", async (double lat, double lon, WeatherService weather, CancellationToken ct) =>
 {
     if (!IsValidCoordinate(lat, lon))
-        return Results.BadRequest(new { error = "Neispravne koordinate." });
+        return Results.BadRequest(new { error = "Invalid coordinates." });
 
     return await Upstream(async () =>
         Results.Content(await weather.GetForecastAsync(lat, lon, ct), "application/json"));
 });
 
-// ---------- Omiljeni gradovi (SQLite) ----------
+// ---------- Favorite cities (SQLite) ----------
 
 api.MapGet("/favorites", async (AppDbContext db) =>
     await db.FavoriteCities.OrderBy(c => c.CreatedAt).ToListAsync());
@@ -52,7 +52,7 @@ api.MapPost("/favorites", async (FavoriteCityInput input, AppDbContext db) =>
 {
     var name = input.Name?.Trim() ?? "";
     if (name.Length is 0 or > 100 || !IsValidCoordinate(input.Latitude, input.Longitude))
-        return Results.BadRequest(new { error = "Neispravni podaci o gradu." });
+        return Results.BadRequest(new { error = "Invalid city data." });
 
     var existing = await db.FavoriteCities.FirstOrDefaultAsync(c =>
         Math.Abs(c.Latitude - input.Latitude) < 0.01 && Math.Abs(c.Longitude - input.Longitude) < 0.01);
@@ -60,7 +60,7 @@ api.MapPost("/favorites", async (FavoriteCityInput input, AppDbContext db) =>
         return Results.Ok(existing);
 
     if (await db.FavoriteCities.CountAsync() >= FavoriteCity.MaxCount)
-        return Results.BadRequest(new { error = $"Možete sačuvati najviše {FavoriteCity.MaxCount} gradova." });
+        return Results.BadRequest(new { error = $"You can save up to {FavoriteCity.MaxCount} cities." });
 
     var city = new FavoriteCity
     {
@@ -87,7 +87,7 @@ app.Run();
 static bool IsValidCoordinate(double lat, double lon) =>
     lat is >= -90 and <= 90 && lon is >= -180 and <= 180;
 
-// Greške spoljnog servisa vraćamo kao 502 umesto 500.
+// Upstream failures are returned as 502 instead of 500.
 static async Task<IResult> Upstream(Func<Task<IResult>> action)
 {
     try
@@ -96,7 +96,7 @@ static async Task<IResult> Upstream(Func<Task<IResult>> action)
     }
     catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
     {
-        return Results.Json(new { error = "Servis za vremensku prognozu trenutno nije dostupan." },
+        return Results.Json(new { error = "The weather service is currently unavailable." },
             statusCode: StatusCodes.Status502BadGateway);
     }
 }
